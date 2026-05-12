@@ -1,0 +1,483 @@
+Import { useState } from “react”;
+
+const questions = [
+{
+id: 1,
+question: “You need to add 50 new users at once. What is the most efficient way to do this in the Admin Console?”,
+options: [“Create each user manually one by one.”, “Use the "Bulk upload users" feature with a CSV file.”, “Ask the users to self-register.”, “Use the "Add User" wizard 50 times.”],
+correct: [1], multi: false,
+explanation: “The Bulk upload users feature lets you add many users at once via a CSV file — the most efficient method.”
+},
+{
+id: 2,
+question: “An employee is trying to use Gemini in the side panel of Google Docs to summarize a project proposal. The Gemini icon is missing, but the license is assigned. What is the most likely troubleshooting step?”,
+options: [“Clear the browser’s history and cookies for the last 24 hours.”, “Ensure "Google Workspace smart features and personalization" is turned ON in the user’s Gmail settings.”, “Reinstall the Google Chrome browser to the latest stable version.”, “Ask the administrator to re-verify the domain’s SPF and DKIM records.”],
+correct: [1], multi: false,
+explanation: “Smart features must be enabled in Gmail settings for Gemini side panel features to appear.”
+},
+{
+id: 3,
+question: “You are an Admin. You want to see how much storage space the "Marketing" user is consuming. Where do you look?”,
+options: [“Apps > Drive.”, “Directory > Users > [Click User] > Storage usage section.”, “Security > Dashboard.”, “You have to ask the user.”],
+correct: [1], multi: false,
+explanation: “User storage details are found under Directory > Users by clicking the specific user.”
+},
+{
+id: 4,
+question: “The Legal OU has a 7-year retention rule; the global default is 365 days. A Legal user manually deletes an email that is 2 years old. What happens in Google Vault?”,
+options: [“It is immediately purged from Google’s servers.”, “It is moved to Trash for 30 days then permanently deleted.”, “It is hidden from the user’s view but remains searchable and exportable in Vault until the 7-year retention period expires.”, “It is kept for 365 days based on the global default rule then purged.”],
+correct: [2], multi: false,
+explanation: “Vault retention rules override user actions. The email is hidden from the user but preserved for the full 7-year period.”
+},
+{
+id: 5,
+question: “A user’s Google Drive storage is full. Which items count towards their Google Workspace storage quota? (Select ALL that apply)”,
+options: [“PDF and other file uploads stored in My Drive.”, “Files shared with them by other users.”, “Gmail messages and attachments in their inbox.”, “Shortcuts to shared files in their Drive.”, “Google Docs, Sheets, and Slides created by them (for recent accounts).”],
+correct: [0, 2, 4], multi: true,
+explanation: “Own uploads (A), Gmail messages (C), and newer Docs/Sheets/Slides (E) count toward quota. Shared files and shortcuts do not.”
+},
+{
+id: 6,
+question: “A user gets a "Server denied POP3 access" error adding their school Gmail account. Which POP Server and Port should they enter?”,
+options: [“Server: mail.domain.com | Port: 110”, “Server: smtp.gmail.com | Port: 465”, “Server: pop.gmail.com | Port: 995”, “Server: imap.gmail.com | Port: 993”],
+correct: [2], multi: false,
+explanation: “Gmail’s POP3 server is pop.gmail.com on port 995 (SSL).”
+},
+{
+id: 7,
+question: “An active user permanently deleted a critical folder from Drive Trash. What can you do to recover it?”,
+options: [“Nothing; once the Trash is emptied, data is gone.”, “Use the Restore data feature in the user’s profile to recover data deleted in the last 25 days.”, “Archive the user and then unarchive them.”, “Contact Google Support immediately.”],
+correct: [1], multi: false,
+explanation: “Admins can restore data deleted within the last 25 days using the Restore data feature in the user’s Admin Console profile.”
+},
+{
+id: 8,
+question: “YouTube is OFF at Root OU. You want Marketing to have YouTube access, but Sales remains blocked. What’s the most efficient configuration?”,
+options: [“Turn YouTube ON at the Root OU.”, “Move the Marketing users to a Group and turn on YouTube for that Group.”, “Select the Marketing OU and "Override" the setting to turn YouTube ON.”, “Create a separate domain for Marketing.”],
+correct: [2], multi: false,
+explanation: “Overriding at the child OU level is the most efficient way — it changes only the Marketing OU without affecting Sales.”
+},
+{
+id: 9,
+question: “You create a new OU called "Marketing" under the root OU. By default, what settings does it have?”,
+options: [“It will have no settings enabled.”, “It will inherit all settings from the parent (Root) OU.”, “It will automatically have "Unrestricted" access to all Google services.”, “It will have the default Google settings, ignoring the Root OU.”],
+correct: [1], multi: false,
+explanation: “New child OUs always inherit settings from their parent OU by default.”
+},
+{
+id: 10,
+question: “In audit logs you see a "Sensitive action blocked" event for a user. What is the most likely cause?”,
+options: [“The user tried to delete a file in Drive.”, “The user failed a "Verify it’s you" challenge when attempting a high-risk action (like changing a recovery email).”, “The user installed a Chrome extension.”, “The user sent an email to an external recipient.”],
+correct: [1], multi: false,
+explanation: “Sensitive action blocked events occur when a user fails an identity challenge during high-risk actions.”
+},
+{
+id: 11,
+question: “While setting up a group, you notice the "External" tag next to it. What does this indicate?”,
+options: [“The group belongs to a different Google Workspace organization.”, “The group has at least one member with an email address outside your domain.”, “The group is being monitored by an external security audit.”, “The group is only accessible via a public URL.”],
+correct: [1], multi: false,
+explanation: “The External tag means at least one group member has an email address from outside your domain.”
+},
+{
+id: 12,
+question: “A user gets "Missing permissions. Open the flow for editing and click Save changes." The agent hasn’t been triggered in over 7 months. What is the cause?”,
+options: [“The user’s Google Workspace password expired.”, “The agent was automatically stopped due to 6 months of inactivity.”, “The 3P connector (e.g., Jira) was uninstalled from the domain.”, “The domain exceeded its "Queries Per Minute" quota.”],
+correct: [1], multi: false,
+explanation: “Workspace Studio agents are automatically stopped after 6 months of inactivity.”
+},
+{
+id: 13,
+question: “An admin needs incoming mail for a department to go to both an on-premise server AND a Google Workspace inbox. Which routing configuration should be used?”,
+options: [“Split delivery”, “Simple routing”, “Dual delivery”, “Catch-all routing”],
+correct: [2], multi: false,
+explanation: “Dual delivery sends a copy of each message to both destinations simultaneously.”
+},
+{
+id: 14,
+question: “Which statements about OUs and Groups in Google Workspace are correct? (Select ALL that apply)”,
+options: [“A user can belong to multiple Groups at the same time.”, “A user can belong to more than one OU at the same time.”, “A user can only be assigned to one OU at a time.”, “Groups can be used to apply settings that override OU-level settings.”, “Moving a user to a new OU automatically changes which Groups they belong to.”],
+correct: [0, 2, 3], multi: true,
+explanation: “Users can be in many groups (A), but only one OU (C). Groups can override OU settings (D). Moving OUs does not change group membership.”
+},
+{
+id: 15,
+question: “A user is not receiving notifications for "Event Responses" (when someone accepts their invite). Where should they verify this setting?”,
+options: [“Settings > General > Event Settings.”, “Settings for my calendars > [Calendar Name] > Other notifications.”, “Settings > Notifications > Desktop Alerts.”, “Settings > Integration > Email API.”],
+correct: [1], multi: false,
+explanation: “Event response notifications are found under each calendar’s "Other notifications" section in Calendar Settings.”
+},
+{
+id: 16,
+question: “A Scheduled Release domain customer contacts support on Dec 15, 2025. Admin sees Workspace Studio in the console, but end users can’t access studio.workspace.google.com. What should you explain?”,
+options: [“The domain must be upgraded to Enterprise Plus.”, “Admin settings roll out in December, but end-user access for Scheduled Release begins in January 2026.”, “Users need to clear their browser cache to see the new waffle menu icon.”, “The service is in a global outage for Scheduled Release customers.”],
+correct: [1], multi: false,
+explanation: “For Scheduled Release domains, admin settings rolled out in December 2025, but end-user access didn’t begin until January 2026.”
+},
+{
+id: 17,
+question: “What is the primary purpose of adding "Employee ID" as a login challenge?”,
+options: [“To replace the user’s password.”, “To act as a username alias.”, “To serve as an additional verification question if Google detects suspicious login activity.”, “To allow users to sign in without an email address.”],
+correct: [2], multi: false,
+explanation: “Employee ID is used as an extra verification step triggered when Google detects suspicious login activity.”
+},
+{
+id: 18,
+question: “You are setting up Split Delivery with users on a legacy server and others on Google Workspace. Where do you configure the legacy server destination?”,
+options: [“In the "User Aliases" section of the Admin console.”, “In the "Hosts" setting within Gmail advanced settings.”, “In the user’s personal Gmail settings under "Accounts and Import."”, “In the Domain DNS settings under TXT records.”],
+correct: [1], multi: false,
+explanation: “Hosts in Gmail advanced settings is where you define external mail server destinations for routing configurations.”
+},
+{
+id: 19,
+question: “2SV is enforced org-wide. A user lost their phone and has no backup codes. What is the most immediate valid method to restore their access?”,
+options: [“Disable 2SV for the entire organization temporarily.”, “Generate backup verification codes for the user in the Admin Console and share them securely.”, “Reset the user’s password and ask them to sign in again.”, “Delete the user’s account and restore it to reset security settings.”],
+correct: [1], multi: false,
+explanation: “Admins can generate backup codes for a user directly from the Admin Console without disabling 2SV for everyone.”
+},
+{
+id: 20,
+question: “You delete a project manager’s account without further action. They had 50GB of files shared with the team. What happens to those files?”,
+options: [“The files remain accessible to the team indefinitely.”, “The files are deleted, and collaborators lose access.”, “The files are automatically transferred to the user’s manager.”, “The files are moved to a Shared Drive automatically.”],
+correct: [1], multi: false,
+explanation: “When a user is deleted without transferring ownership, their Drive files are deleted and collaborators lose access.”
+},
+{
+id: 21,
+question: “You are troubleshooting a resource that is double-booking meetings. Which "Conflict" setting should you select?”,
+options: [”"Automatically add all invitations."”, “"Auto-accept invitations that do not conflict."”, “"Do not show this calendar in the directory."”, “"Only allow invitations from administrators."”],
+correct: [1], multi: false,
+explanation: “"Auto-accept invitations that do not conflict" ensures the resource declines duplicate bookings automatically.”
+},
+{
+id: 22,
+question: “You suspect a user’s account has been compromised. Which actions should you take? (Select ALL that apply)”,
+options: [“Suspend the user to immediately block all login access.”, “Reset the user’s password to invalidate the attacker’s credentials.”, “Move the user to a "Restricted" OU permanently.”, “Reset the user’s sign-in cookies to terminate all active sessions.”, “Delete the user’s account to remove all data.”],
+correct: [0, 1, 3], multi: true,
+explanation: “Suspend (A), reset password (B), and reset sign-in cookies (D) are the correct immediate response actions.”
+},
+{
+id: 23,
+question: “A user is traveling with no internet. They have 2SV enabled and can’t generate a code. What can they use?”,
+options: [“Google Prompt.”, “Backup codes.”, “An SMS code sent to their voicemail.”, “Admin "Temporary Login" bypass.”],
+correct: [1], multi: false,
+explanation: “Backup codes work offline — they are pre-generated and don’t require an internet connection.”
+},
+{
+id: 24,
+question: “You want to allow users to update their own Name and Pronouns without contacting IT. Where in the Admin Console do you grant these editing permissions?”,
+options: [“Directory > Directory settings > Profile editing”, “Apps > Google Workspace > Drive and Docs > User Permissions”, “Security > Access and data control > User overrides”, “Billing > Subscriptions > User Metadata features”],
+correct: [0], multi: false,
+explanation: “Profile editing permissions are managed under Directory > Directory settings > Profile editing.”
+},
+{
+id: 25,
+question: “An admin changes smart features from "Let users choose" to "Disabled." What is the immediate impact on end users?”,
+options: [“Users will be prompted with a pop-up to appeal the decision.”, “The features will remain active for 30 days before being automatically removed.”, “The features will be turned off immediately, and users will lose the ability to turn them back on.”, “Users will only lose access if they are using a personal (@gmail.com) account.”],
+correct: [2], multi: false,
+explanation: “Admin-level "Disabled" immediately turns off smart features for all users, with no user override option.”
+},
+{
+id: 26,
+question: “A mixed domain has 50 Business Starter and 1 Business Standard license. They want to buy 10 "AI Expanded Access" add-on licenses. What restriction will they encounter?”,
+options: [“They cannot purchase the add-on because they have Business Starter users.”, “They can only purchase a maximum of 1 add-on license because they only have 1 eligible Core SKU license.”, “They must assign the add-on licenses to the Business Starter users first.”, “They can purchase all 10 but can only use them in "Workspace Studio."”],
+correct: [1], multi: false,
+explanation: “AI Expanded Access add-ons are limited to the number of eligible Core SKU (e.g., Business Standard) licenses — here, only 1.”
+},
+{
+id: 27,
+question: “A user is not receiving the Google Prompt on their phone. What is the most common troubleshooting step?”,
+options: [“Reinstall the Gmail app.”, “Ensure the phone has an active internet connection and the user is signed in to the Google app (Android) or Google/Gmail app (iOS).”, “Disable Bluetooth.”, “Reset the user’s password.”],
+correct: [1], multi: false,
+explanation: “Google Prompt requires an internet connection and an active sign-in to the Google or Gmail app.”
+},
+{
+id: 28,
+question: “You share a document with a user and give them "Commenter" access. What can they do?”,
+options: [“They can edit the text of the document directly.”, “They can only read the document; they cannot make any marks.”, “They can view the document and suggest edits (Suggestions mode) or add comments, but cannot change the text directly.”, “They can delete the document.”],
+correct: [2], multi: false,
+explanation: “Commenters can view, comment, and suggest edits — but cannot directly edit or delete the document.”
+},
+{
+id: 29,
+question: “You have 50 new employees starting next Monday with a spreadsheet of their info. What is the most efficient way to create their accounts?”,
+options: [“Create them one by one in the Admin Console.”, “Use the "Bulk upload users" feature using a CSV file.”, “Use the "Import from Gmail" feature.”, “Ask the users to create their own accounts.”],
+correct: [1], multi: false,
+explanation: “Bulk upload via CSV is the standard efficient method for creating many accounts at once.”
+},
+{
+id: 30,
+question: “A legal dispute involves the Marketing department. An admin needs to preserve all Gmail messages for Marketing OU members, even if they try to delete them. What’s the most effective approach?”,
+options: [“Create a custom retention rule for the Marketing OU set to "Indefinite."”, “Create a matter in Vault and set a hold on the Marketing OU for the Gmail service.”, “Export all Marketing OU mailboxes to a PST file and store externally.”, “Enable "Comprehensive Mail Storage" for all marketing users.”],
+correct: [1], multi: false,
+explanation: “A legal hold in Google Vault preserves data regardless of user actions, making it the correct tool for litigation holds.”
+},
+{
+id: 31,
+question: “Which 2SV methods are MORE secure than SMS codes? (Select ALL that apply)”,
+options: [“SMS (Text Message) codes.”, “Security Keys (Titan or FIDO standard).”, “Google Prompt (Mobile push notification).”, “Backup codes printed on paper.”, “Time-based One-Time Password (TOTP) via an authenticator app.”],
+correct: [1, 2, 4], multi: true,
+explanation: “Security Keys (B), Google Prompt (C), and TOTP apps (E) are all more secure than SMS, which is vulnerable to SIM swapping.”
+},
+{
+id: 32,
+question: “A user tries to connect a secondary email via Gmailify, but only sees the POP3 option. What is the most likely reason?”,
+options: [“The secondary account doesn’t support 2-Step Verification.”, “The user has already reached the maximum limit of five linked Gmailify accounts.”, “The secondary account provider (e.g., Yahoo, Outlook) does not currently support Gmailify.”, “The user’s internet connection is too slow.”],
+correct: [2], multi: false,
+explanation: “Gmailify is only available for supported providers. If the provider isn’t supported, only POP3 import is offered.”
+},
+{
+id: 33,
+question: “100 users need to be moved from the "Sales" OU to the "Marketing" OU. What is the fastest way?”,
+options: [“Move them manually in the Admin Console.”, “Use the Bulk Update Users feature via CSV file.”, “Delete the users and recreate them in the correct OU.”, “Use the "Directory Sync" tool.”],
+correct: [1], multi: false,
+explanation: “Bulk Update via CSV is the fastest method for moving many users between OUs.”
+},
+{
+id: 34,
+question: “You’ve reset a compromised user’s password. What additional step must you take to immediately disconnect the attacker from all active sessions?”,
+options: [“Delete the user’s recovery email address.”, “Reset the user’s sign-in cookies in the Admin Console.”, “Move the user to a different Organizational Unit.”, “Suspend the user for 24 hours.”],
+correct: [1], multi: false,
+explanation: “Resetting sign-in cookies terminates all existing active sessions, immediately kicking out any unauthorized user.”
+},
+{
+id: 35,
+question: “You want all employees to see when the "Training Room" is booked, but hide the meeting titles. Which permission level should you set?”,
+options: [“See all event details”, “Make changes to events”, “See only free/busy (hide details)”, “Hide all activity”],
+correct: [2], multi: false,
+explanation: “"See only free/busy (hide details)" shows availability without revealing meeting titles or descriptions.”
+},
+{
+id: 36,
+question: “Which type of Group is best suited for a team that needs to collaborate, share a common inbox, and receive calendar invites?”,
+options: [“Security Group.”, “Google Group (Mailing list / Collaborative Inbox).”, “Dynamic Group.”, “Organizational Unit.”],
+correct: [1], multi: false,
+explanation: “Google Groups with Collaborative Inbox are designed for shared inboxes and team communication/collaboration.”
+},
+{
+id: 37,
+question: “A user’s phone was stolen with Google Workspace on it. Which admin actions should be taken? (Select ALL that apply)”,
+options: [“Remotely wipe the corporate account data from the stolen device.”, “Reset the user’s password so the attacker cannot access other services.”, “Delete the user’s Google Workspace account permanently.”, “Reset the user’s sign-in cookies to invalidate all active sessions.”, “Call the phone carrier to suspend the SIM card.”],
+correct: [0, 1, 3], multi: true,
+explanation: “Remote wipe (A), password reset (B), and session cookie reset (D) are the correct admin actions.”
+},
+{
+id: 38,
+question: “An admin placed a legal hold on a user’s Drive files. If the admin later deletes the associated Vault matter, what happens to the preserved files?”,
+options: [“The files are immediately purged from Google’s servers.”, “The hold is released, and the data becomes subject to the organization’s standard retention rules.”, “The files remain under hold until the admin manually releases each file.”, “The user is notified via Gmail that their data is no longer monitored.”],
+correct: [1], multi: false,
+explanation: “Deleting a Vault matter releases the hold. Files then revert to being governed by normal retention rules.”
+},
+{
+id: 39,
+question: “You need third-party apps to only access Google Workspace data if they are explicitly "Trusted" by an admin. Which API Control setting should you configure?”,
+options: [“Set "Google Services" access to "Restricted" for the specific services (e.g., Drive).”, “Set "Google Services" access to "Unrestricted" for all services.”, “Disable the "Allow users to turn on 2-Step Verification" setting.”, “Remove the "API Access" privilege from all user roles.”],
+correct: [0], multi: false,
+explanation: “Setting services to "Restricted" means only admin-approved/trusted apps can access those services.”
+},
+{
+id: 40,
+question: “A customer asks if Workspace Studio can send Direct Messages (DMs) to specific users in Slack. How should you respond?”,
+options: [“Yes, Slack DMs are fully supported in the GA version.”, “No, Slack integration only supports messages to channels; DMs are not supported.”, “Yes, but the user must install the Slack app from the Workspace Marketplace first.”, “No, 3P integrations are only available for Enterprise Plus customers.”],
+correct: [1], multi: false,
+explanation: “Workspace Studio’s Slack connector only supports channel messages, not Direct Messages.”
+}
+];
+
+const LABELS = [“A”, “B”, “C”, “D”, “E”];
+
+export default function App() {
+const [current, setCurrent] = useState(0);
+const [selected, setSelected] = useState([]);
+const [submitted, setSubmitted] = useState(false);
+const [score, setScore] = useState(0);
+const [done, setDone] = useState(false);
+const [results, setResults] = useState([]);
+
+const q = questions[current];
+const total = questions.length;
+
+const toggle = (i) => {
+if (submitted) return;
+if (q.multi) {
+setSelected(prev => prev.includes(i) ? prev.filter(x => x !== i) : […prev, i]);
+} else {
+setSelected([i]);
+}
+};
+
+const submit = () => {
+if (selected.length === 0) return;
+const isCorrect = JSON.stringify([…selected].sort()) === JSON.stringify([…q.correct].sort());
+setSubmitted(true);
+if (isCorrect) setScore(s => s + 1);
+setResults(prev => […prev, { id: q.id, correct: isCorrect }]);
+};
+
+const next = () => {
+if (current + 1 >= total) { setDone(true); return; }
+setCurrent(c => c + 1);
+setSelected([]);
+setSubmitted(false);
+};
+
+const restart = () => {
+setCurrent(0); setSelected([]); setSubmitted(false);
+setScore(0); setDone(false); setResults([]);
+};
+
+const getState = (i) => {
+if (!submitted) return selected.includes(i) ? “sel” : “idle”;
+if (q.correct.includes(i)) return “correct”;
+if (selected.includes(i)) return “wrong”;
+return “idle”;
+};
+
+// Results screen
+if (done) {
+const pct = Math.round((score / total) * 100);
+const emoji = pct >= 90 ? “🏆” : pct >= 70 ? “🎉” : pct >= 50 ? “📚” : “💪”;
+return (
+<div style={{ minHeight: “100vh”, background: “#f1f5f9”, display: “flex”, alignItems: “center”, justifyContent: “center”, padding: “24px”, fontFamily: “‘Segoe UI’, system-ui, sans-serif” }}>
+<div style={{ background: “#fff”, borderRadius: “24px”, padding: “40px 32px”, maxWidth: “460px”, width: “100%”, boxShadow: “0 8px 32px rgba(0,0,0,0.1)”, textAlign: “center” }}>
+<div style={{ fontSize: “60px”, marginBottom: “8px” }}>{emoji}</div>
+<div style={{ fontSize: “26px”, fontWeight: “800”, color: “#1e293b”, marginBottom: “4px” }}>Quiz Complete!</div>
+<div style={{ fontSize: “64px”, fontWeight: “900”, color: pct >= 70 ? “#16a34a” : “#dc2626”, lineHeight: 1.1, margin: “16px 0 4px” }}>{pct}%</div>
+<div style={{ fontSize: “16px”, color: “#64748b”, marginBottom: “28px” }}>{score} correct out of {total}</div>
+<div style={{ display: “flex”, gap: “4px”, justifyContent: “center”, flexWrap: “wrap”, marginBottom: “28px” }}>
+{results.map((r, i) => (
+<div key={i} title={`Q${r.id}`} style={{ width: “18px”, height: “18px”, borderRadius: “4px”, background: r.correct ? “#22c55e” : “#ef4444” }} />
+))}
+</div>
+<button onClick={restart} style={{ width: “100%”, padding: “15px”, background: “#4f46e5”, color: “#fff”, border: “none”, borderRadius: “12px”, fontSize: “16px”, fontWeight: “700”, cursor: “pointer” }}>
+Try Again
+</button>
+</div>
+</div>
+);
+}
+
+const isAnswerCorrect = submitted && JSON.stringify([…selected].sort()) === JSON.stringify([…q.correct].sort());
+
+return (
+<div style={{ minHeight: “100vh”, background: “#f1f5f9”, padding: “20px 16px”, fontFamily: “‘Segoe UI’, system-ui, sans-serif” }}>
+<div style={{ maxWidth: “620px”, margin: “0 auto” }}>
+
+```
+    {/* Top bar */}
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+      <span style={{ fontSize: "13px", fontWeight: "600", color: "#94a3b8" }}>
+        {current + 1} / {total}
+      </span>
+      <span style={{ fontSize: "13px", fontWeight: "700", color: "#4f46e5" }}>
+        Score: {score}
+      </span>
+    </div>
+
+    {/* Progress */}
+    <div style={{ height: "5px", background: "#e2e8f0", borderRadius: "99px", marginBottom: "20px" }}>
+      <div style={{ height: "100%", width: `${(current / total) * 100}%`, background: "#4f46e5", borderRadius: "99px", transition: "width 0.35s ease" }} />
+    </div>
+
+    {/* Question card */}
+    <div style={{ background: "#fff", borderRadius: "18px", padding: "24px 20px", boxShadow: "0 2px 16px rgba(0,0,0,0.07)", marginBottom: "14px" }}>
+
+      {q.multi && (
+        <div style={{ display: "inline-block", background: "#fff7ed", color: "#c2410c", padding: "3px 12px", borderRadius: "99px", fontSize: "12px", fontWeight: "700", marginBottom: "12px", border: "1px solid #fed7aa" }}>
+          Select all that apply
+        </div>
+      )}
+
+      <p style={{ margin: "0 0 20px", fontSize: "16px", fontWeight: "600", color: "#1e293b", lineHeight: "1.6" }}>
+        {q.question}
+      </p>
+
+      {q.options.map((opt, i) => {
+        const state = getState(i);
+        const borderColor = state === "correct" ? "#22c55e" : state === "wrong" ? "#ef4444" : state === "sel" ? "#4f46e5" : "#e2e8f0";
+        const bgColor = state === "correct" ? "#f0fdf4" : state === "wrong" ? "#fef2f2" : state === "sel" ? "#eef2ff" : "#fafafa";
+        const labelBg = state === "correct" ? "#22c55e" : state === "wrong" ? "#ef4444" : state === "sel" ? "#4f46e5" : "#e2e8f0";
+        const labelColor = state === "idle" ? "#64748b" : "#fff";
+        const textColor = state === "correct" ? "#15803d" : state === "wrong" ? "#b91c1c" : state === "sel" ? "#3730a3" : "#334155";
+
+        return (
+          <div
+            key={i}
+            onClick={() => toggle(i)}
+            style={{
+              display: "flex", alignItems: "flex-start", gap: "12px",
+              padding: "13px 14px", marginBottom: "9px",
+              borderRadius: "12px", border: `2px solid ${borderColor}`,
+              background: bgColor, cursor: submitted ? "default" : "pointer",
+              transition: "all 0.15s",
+            }}
+          >
+            <div style={{
+              minWidth: "30px", height: "30px", borderRadius: "8px",
+              background: labelBg, color: labelColor,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontWeight: "700", fontSize: "13px", flexShrink: 0,
+            }}>
+              {LABELS[i]}
+            </div>
+            <span style={{ fontSize: "14px", color: textColor, lineHeight: "1.55", paddingTop: "4px", flex: 1 }}>
+              {opt}
+            </span>
+            {state === "correct" && <span style={{ fontSize: "18px", marginTop: "3px" }}>✓</span>}
+            {state === "wrong" && <span style={{ fontSize: "18px", marginTop: "3px" }}>✗</span>}
+          </div>
+        );
+      })}
+
+      {/* Explanation */}
+      {submitted && (
+        <div style={{
+          marginTop: "14px", padding: "13px 16px",
+          background: isAnswerCorrect ? "#f0fdf4" : "#fef2f2",
+          border: `1px solid ${isAnswerCorrect ? "#86efac" : "#fca5a5"}`,
+          borderRadius: "12px",
+        }}>
+          <div style={{ fontWeight: "700", color: isAnswerCorrect ? "#15803d" : "#b91c1c", marginBottom: "5px", fontSize: "14px" }}>
+            {isAnswerCorrect ? "✅ Correct!" : "❌ Incorrect"}
+          </div>
+          <div style={{ fontSize: "13px", color: "#475569", lineHeight: "1.6" }}>{q.explanation}</div>
+        </div>
+      )}
+    </div>
+
+    {/* Button */}
+    {!submitted ? (
+      <button
+        onClick={submit}
+        disabled={selected.length === 0}
+        style={{
+          width: "100%", padding: "15px",
+          background: selected.length === 0 ? "#e2e8f0" : "#4f46e5",
+          color: selected.length === 0 ? "#94a3b8" : "#fff",
+          border: "none", borderRadius: "13px",
+          fontSize: "15px", fontWeight: "700",
+          cursor: selected.length === 0 ? "not-allowed" : "pointer",
+          transition: "background 0.2s",
+        }}
+      >
+        Submit Answer
+      </button>
+    ) : (
+      <button
+        onClick={next}
+        style={{
+          width: "100%", padding: "15px",
+          background: "#1e293b", color: "#fff",
+          border: "none", borderRadius: "13px",
+          fontSize: "15px", fontWeight: "700", cursor: "pointer",
+        }}
+      >
+        {current + 1 >= total ? "See Results →" : "Next Question →"}
+      </button>
+    )}
+
+  </div>
+</div>
+```
+
+);
+}
